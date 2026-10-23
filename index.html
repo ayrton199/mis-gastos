@@ -1,144 +1,223 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#12151c">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0d0e1a">
   <title>Mis Gastos</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+  <script>
+    // Tema antes de pintar (evita parpadeo): oscuro por defecto
+    try { document.documentElement.dataset.theme = localStorage.getItem('gastos.theme') || 'dark'; } catch (e) { document.documentElement.dataset.theme = 'dark'; }
+  </script>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script src="https://accounts.google.com/gsi/client" async></script>
 </head>
 <body>
-  <!-- Pantalla de inicio de sesión / configuración -->
+  <!-- Entrada / configuración -->
   <section id="gate" class="gate">
-    <div class="gate-card card">
-      <div class="gate-logo">💰</div>
+    <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+    <div class="gate-card glass">
+      <div class="logo-mark big">$</div>
       <h1>Mis Gastos</h1>
       <div id="gate-login">
-        <p>Tus movimientos se guardan en tu propia hoja de Google Sheets.</p>
+        <p>Tus finanzas personales, guardadas en tu propia hoja de Google Sheets.</p>
         <button class="btn primary big" id="btn-login">Entrar con Google</button>
       </div>
       <form id="gate-sheet" hidden>
-        <p>Pega el enlace de la hoja de Google Sheets donde quieres guardar tus gastos.</p>
+        <p>Pega el enlace de la hoja de Google Sheets donde guardas tus gastos.</p>
         <input id="sheet-url" placeholder="https://docs.google.com/spreadsheets/d/…" required>
         <button class="btn primary big" type="submit">Usar esta hoja</button>
       </form>
       <p class="gate-msg" id="gate-msg"></p>
+      <button class="theme-toggle ghost-icon gate-theme" data-theme-toggle aria-label="Cambiar tema"></button>
     </div>
   </section>
 
-  <div id="app" hidden>
-    <header class="topbar">
-      <div class="brand">💰 Mis Gastos</div>
-      <nav class="tabs" id="tabs">
-        <button data-view="resumen" class="active">Resumen</button>
-        <button data-view="movimientos">Movimientos</button>
-        <button data-view="cuentas">Cuentas</button>
-        <button data-view="categorias">Categorías</button>
+  <div id="app" class="shell" hidden>
+    <!-- Menú lateral (PC) -->
+    <aside class="sidebar">
+      <div class="brand"><div class="logo-mark">$</div><span>Mis Gastos</span></div>
+      <nav class="side-nav" id="side-nav">
+        <button data-view="resumen" class="active" data-icon="home">Resumen</button>
+        <button data-view="movimientos" data-icon="list">Movimientos</button>
+        <button data-view="cuentas" data-icon="wallet">Cuentas</button>
+        <button data-view="categorias" data-icon="tag">Categorías</button>
       </nav>
-      <div class="status">
-        <a class="pill ok" id="sheet-link" target="_blank" rel="noopener" title="Abrir la hoja">Google Sheets</a>
-        <button class="pill click" id="btn-refresh" title="Recargar datos de la hoja">↻</button>
-        <button class="pill click" id="btn-settings" title="Cambiar hoja o salir">⚙️</button>
+      <div class="side-bottom">
+        <a class="side-link" id="sheet-link" target="_blank" rel="noopener" data-icon="sheet">Mi hoja</a>
+        <button class="side-link" id="btn-settings" data-icon="settings">Ajustes</button>
+        <button class="side-link theme-row" data-theme-toggle><span class="theme-toggle-icon"></span><span class="theme-label">Tema claro</span></button>
       </div>
-    </header>
+    </aside>
 
-    <main>
-      <!-- RESUMEN -->
-      <section id="view-resumen" class="view active">
-        <div class="toolbar">
-          <input type="month" id="month">
-          <form id="quick" class="quick">
-            <input id="quick-text" placeholder="Registro rápido: almuerzo 3.50 pichincha" autocomplete="off">
-            <button class="btn" type="submit">Agregar</button>
+    <div class="main">
+      <header class="topbar">
+        <div class="title-block">
+          <h1 id="view-title">Resumen</h1>
+          <div class="month-switch" id="month-switch">
+            <button class="ghost-icon" id="month-prev" aria-label="Mes anterior" data-icon="chevronL"></button>
+            <span id="month-label"></span>
+            <button class="ghost-icon" id="month-next" aria-label="Mes siguiente" data-icon="chevronR"></button>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button class="ghost-icon" id="btn-refresh" aria-label="Recargar datos" title="Recargar datos de la hoja" data-icon="refresh"></button>
+          <button class="ghost-icon theme-toggle mobile-only" data-theme-toggle aria-label="Cambiar tema"></button>
+          <button class="ghost-icon mobile-only" id="btn-settings-m" aria-label="Ajustes" data-icon="settings"></button>
+          <button class="btn primary desktop-only" id="btn-new"><span data-icon="plus"></span> Nuevo movimiento</button>
+        </div>
+      </header>
+
+      <main id="views">
+        <!-- RESUMEN -->
+        <section id="view-resumen" class="view active">
+          <form id="quick" class="quick card">
+            <span class="quick-ico" data-icon="sparkle"></span>
+            <input id="quick-text" placeholder="Registro rápido: almuerzo 3.50 pichincha" autocomplete="off" enterkeyhint="send">
+            <button class="btn primary" type="submit">Agregar</button>
           </form>
-          <button class="btn primary" id="btn-new">+ Nuevo movimiento</button>
-        </div>
-        <div class="cards">
-          <div class="card stat"><span>Ingresos del mes</span><strong id="s-ingresos" class="pos"></strong></div>
-          <div class="card stat"><span>Gastos del mes</span><strong id="s-gastos" class="neg"></strong></div>
-          <div class="card stat"><span>Balance del mes</span><strong id="s-balance"></strong></div>
-          <div class="card stat"><span>Saldo total en cuentas</span><strong id="s-total"></strong></div>
-        </div>
-        <div class="grid2">
-          <div class="card">
-            <h3>Gastos por categoría</h3>
-            <div id="by-category" class="bars"></div>
-          </div>
-          <div class="card">
-            <h3>Últimos 6 meses</h3>
-            <div id="monthly" class="monthly"></div>
-            <div class="legend"><i style="background:var(--pos)"></i>Ingresos<i style="background:var(--neg)"></i>Gastos</div>
-          </div>
-        </div>
-        <div class="grid2">
-          <div class="card">
-            <h3>Saldos por cuenta</h3>
-            <div id="account-balances"></div>
-          </div>
-          <div class="card">
-            <h3>Movimientos recientes</h3>
-            <div id="recent"></div>
-          </div>
-        </div>
-      </section>
+          <div class="quick-hints" id="quick-hints"></div>
 
-      <!-- MOVIMIENTOS -->
-      <section id="view-movimientos" class="view">
-        <div class="toolbar wrap">
-          <input type="search" id="f-q" placeholder="Buscar…">
-          <select id="f-type"><option value="">Todos los tipos</option><option value="gasto">Gastos</option><option value="ingreso">Ingresos</option><option value="transferencia">Transferencias</option></select>
-          <select id="f-account"></select>
-          <select id="f-category"></select>
-          <input type="date" id="f-from" title="Desde">
-          <input type="date" id="f-to" title="Hasta">
-          <div class="spacer"></div>
-          <button class="btn primary" id="btn-new-2">+ Nuevo</button>
-        </div>
-        <div class="card flush">
-          <table class="table" id="tx-table">
-            <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Cuenta</th><th class="r">Monto</th></tr></thead>
-            <tbody></tbody>
-          </table>
-          <div class="empty" id="tx-empty" hidden>No hay movimientos con estos filtros.</div>
-        </div>
-      </section>
+          <div class="dash">
+            <div class="card chart-card span-7">
+              <div class="card-head">
+                <div>
+                  <h3>Flujo de dinero</h3>
+                  <p class="sub" id="chart-sub"></p>
+                </div>
+                <div class="pills" id="chart-range">
+                  <button data-range="mes" class="active">Mes</button>
+                  <button data-range="6m">6 meses</button>
+                  <button data-range="12m">12 meses</button>
+                </div>
+              </div>
+              <div class="legend-row">
+                <span><i class="lg gastos"></i>Gastos</span>
+                <span><i class="lg ingresos"></i>Ingresos</span>
+              </div>
+              <div class="chart" id="line-chart"></div>
+            </div>
 
-      <!-- CUENTAS -->
-      <section id="view-cuentas" class="view">
-        <div class="toolbar"><div class="spacer"></div><button class="btn primary" id="btn-new-account">+ Nueva cuenta</button></div>
-        <div id="banks"></div>
-      </section>
+            <div class="span-5 stat-grid">
+              <div class="hero-card">
+                <div class="hero-top">
+                  <span class="hero-ico" data-icon="dollar"></span>
+                  <span class="hero-badge" id="hero-badge"></span>
+                </div>
+                <strong class="hero-value" id="s-balance">$0</strong>
+                <span class="hero-label">Balance del mes</span>
+                <div class="hero-bar"><div id="hero-bar-fill"></div></div>
+                <span class="hero-foot" id="hero-foot"></span>
+              </div>
+              <div class="card stat" style="--tint: var(--pos)">
+                <div class="stat-top"><span class="tile" data-icon="income"></span><span class="trend" id="t-ingresos"></span></div>
+                <strong id="s-ingresos">$0</strong><span>Ingresos</span>
+              </div>
+              <div class="card stat" style="--tint: var(--neg)">
+                <div class="stat-top"><span class="tile" data-icon="expense"></span><span class="trend" id="t-gastos"></span></div>
+                <strong id="s-gastos">$0</strong><span>Gastos</span>
+              </div>
+              <div class="card stat" style="--tint: var(--primary)">
+                <div class="stat-top"><span class="tile" data-icon="wallet"></span><span class="trend neutral" id="t-cuentas"></span></div>
+                <strong id="s-total">$0</strong><span>Saldo total</span>
+              </div>
+              <div class="card stat" style="--tint: var(--cyan)">
+                <div class="stat-top"><span class="tile" data-icon="dollar"></span><span class="trend neutral" id="t-diario"></span></div>
+                <strong id="s-diario">$0</strong><span>Gasto diario promedio</span>
+              </div>
+            </div>
 
-      <!-- CATEGORIAS -->
-      <section id="view-categorias" class="view">
-        <div class="toolbar"><div class="spacer"></div><button class="btn primary" id="btn-new-category">+ Nueva categoría</button></div>
-        <div class="grid2">
-          <div class="card"><h3>Gastos</h3><div id="cat-gasto" class="cat-list"></div></div>
-          <div class="card"><h3>Ingresos</h3><div id="cat-ingreso" class="cat-list"></div></div>
-        </div>
-      </section>
-    </main>
+            <div class="card span-6">
+              <div class="card-head"><h3>Gastos por categoría</h3><span class="sub" id="donut-sub"></span></div>
+              <div class="donut-wrap">
+                <div class="donut" id="donut"></div>
+                <div class="donut-legend" id="donut-legend"></div>
+              </div>
+            </div>
+
+            <div class="card span-6">
+              <div class="card-head"><h3>Mis cuentas</h3><button class="link-btn" data-goto="cuentas">Ver todas</button></div>
+              <div id="account-list" class="acc-list"></div>
+            </div>
+
+            <div class="card span-12">
+              <div class="card-head"><h3>Movimientos recientes</h3><button class="link-btn" data-goto="movimientos">Ver todos</button></div>
+              <div id="recent" class="tx-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- MOVIMIENTOS -->
+        <section id="view-movimientos" class="view">
+          <div class="card filters">
+            <label class="search"><span data-icon="search"></span><input type="search" id="f-q" placeholder="Buscar…"></label>
+            <div class="pills" id="f-type">
+              <button data-type="" class="active">Todos</button>
+              <button data-type="gasto">Gastos</button>
+              <button data-type="ingreso">Ingresos</button>
+              <button data-type="transferencia">Transf.</button>
+            </div>
+            <select id="f-account"></select>
+            <select id="f-category"></select>
+            <input type="date" id="f-from" title="Desde">
+            <input type="date" id="f-to" title="Hasta">
+          </div>
+          <div class="tx-summary" id="tx-summary"></div>
+          <div id="tx-groups"></div>
+          <div class="empty" id="tx-empty" hidden><span data-icon="search"></span>No hay movimientos con estos filtros.</div>
+        </section>
+
+        <!-- CUENTAS -->
+        <section id="view-cuentas" class="view">
+          <div id="banks"></div>
+        </section>
+
+        <!-- CATEGORÍAS -->
+        <section id="view-categorias" class="view">
+          <h2 class="section-title">Gastos</h2>
+          <div class="cat-grid" id="cat-gasto"></div>
+          <h2 class="section-title">Ingresos</h2>
+          <div class="cat-grid" id="cat-ingreso"></div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Navegación inferior (celular) -->
+    <nav class="bottom-nav" id="bottom-nav">
+      <button data-view="resumen" class="active" data-icon="home"><span>Resumen</span></button>
+      <button data-view="movimientos" data-icon="list"><span>Movimientos</span></button>
+      <button class="fab" id="btn-fab" aria-label="Nuevo movimiento" data-icon="plus"></button>
+      <button data-view="cuentas" data-icon="wallet"><span>Cuentas</span></button>
+      <button data-view="categorias" data-icon="tag"><span>Categorías</span></button>
+    </nav>
   </div>
 
   <!-- Modal movimiento -->
   <dialog id="dlg-tx">
     <form method="dialog" id="form-tx">
+      <div class="sheet-handle"></div>
       <h2 id="tx-title">Nuevo movimiento</h2>
       <div class="segmented" id="tx-type">
         <label><input type="radio" name="type" value="gasto" checked><span>Gasto</span></label>
         <label><input type="radio" name="type" value="ingreso"><span>Ingreso</span></label>
         <label><input type="radio" name="type" value="transferencia"><span>Transferencia</span></label>
       </div>
-      <label>Monto<input name="amount" type="number" step="any" min="0" required inputmode="decimal"></label>
-      <label>Fecha<input name="date" type="date" required></label>
-      <label><span id="lbl-account">Cuenta</span><select name="account" required></select></label>
+      <label class="amount-field"><span>Monto</span><div><b>$</b><input name="amount" type="number" step="any" min="0" required inputmode="decimal" placeholder="0,00"></div></label>
+      <div class="row2">
+        <label>Fecha<input name="date" type="date" required></label>
+        <label><span id="lbl-account">Cuenta</span><select name="account" required></select></label>
+      </div>
       <label class="only-transfer">Cuenta destino<select name="to_account"></select></label>
       <label class="no-transfer">Categoría<select name="category"></select></label>
-      <label>Comercio<input name="merchant" placeholder="Opcional"></label>
-      <label>Descripción<input name="description" placeholder="Opcional"></label>
+      <div class="row2">
+        <label>Comercio<input name="merchant" placeholder="Opcional"></label>
+        <label>Descripción<input name="description" placeholder="Opcional"></label>
+      </div>
       <p class="error" id="tx-error"></p>
       <div class="actions">
         <button type="button" class="btn danger" id="tx-delete" hidden>Eliminar</button>
@@ -152,19 +231,22 @@
   <!-- Modal cuenta -->
   <dialog id="dlg-account">
     <form method="dialog" id="form-account">
+      <div class="sheet-handle"></div>
       <h2 id="account-title">Nueva cuenta</h2>
       <label>Nombre<input name="name" required placeholder="Ej: Cuenta de ahorros, Tarjeta de crédito"></label>
       <label>Banco<input name="bank" placeholder="Ej: Banco Pichincha, Produbanco, JEP" list="bank-list"></label>
       <datalist id="bank-list"></datalist>
-      <label>Tipo<select name="type">
-        <option value="ahorro">Cuenta de ahorros</option>
-        <option value="corriente">Cuenta corriente</option>
-        <option value="credito">Tarjeta de crédito</option>
-        <option value="efectivo">Efectivo</option>
-        <option value="inversion">Inversión</option>
-      </select></label>
-      <label>Saldo inicial<input name="initial_balance" type="number" step="any" value="0"></label>
-      <label>Color<input name="color" type="color" value="#4f7cff"></label>
+      <div class="row2">
+        <label>Tipo<select name="type">
+          <option value="ahorro">Cuenta de ahorros</option>
+          <option value="corriente">Cuenta corriente</option>
+          <option value="credito">Tarjeta de crédito</option>
+          <option value="efectivo">Efectivo</option>
+          <option value="inversion">Inversión</option>
+        </select></label>
+        <label>Saldo inicial<input name="initial_balance" type="number" step="any" value="0"></label>
+      </div>
+      <label>Color<div class="swatches" id="acc-swatches"></div><input name="color" type="hidden"></label>
       <label class="check"><input name="is_default" type="checkbox"> Cuenta predeterminada (se usa cuando no indicas una)</label>
       <p class="error" id="account-error"></p>
       <div class="actions">
@@ -176,14 +258,17 @@
     </form>
   </dialog>
 
-  <!-- Modal categoria -->
+  <!-- Modal categoría -->
   <dialog id="dlg-category">
     <form method="dialog" id="form-category">
+      <div class="sheet-handle"></div>
       <h2 id="category-title">Nueva categoría</h2>
-      <label>Nombre<input name="name" required></label>
-      <label>Tipo<select name="kind"><option value="gasto">Gasto</option><option value="ingreso">Ingreso</option></select></label>
+      <div class="row2">
+        <label>Nombre<input name="name" required></label>
+        <label>Tipo<select name="kind"><option value="gasto">Gasto</option><option value="ingreso">Ingreso</option></select></label>
+      </div>
       <label>Ícono (emoji)<input name="icon" maxlength="4" placeholder="🍕"></label>
-      <label>Color<input name="color" type="color" value="#4f7cff"></label>
+      <label>Color<div class="swatches" id="cat-swatches"></div><input name="color" type="hidden"></label>
       <p class="error" id="category-error"></p>
       <div class="actions">
         <button type="button" class="btn danger" id="category-delete" hidden>Eliminar</button>
@@ -197,6 +282,7 @@
   <!-- Modal ajustes -->
   <dialog id="dlg-settings">
     <form method="dialog">
+      <div class="sheet-handle"></div>
       <h2>Ajustes</h2>
       <p class="muted">Hoja conectada: <a id="settings-sheet" target="_blank" rel="noopener"></a></p>
       <div class="actions">
