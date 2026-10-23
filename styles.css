@@ -437,6 +437,15 @@ form.is-transfer .no-transfer, form:not(.is-transfer) .only-transfer { display: 
   .filters select, .filters input[type=date] { flex: 1 1 45%; }
   .chart { height: 220px; }
 }
+/* ---------- Modo privado: saldos borrosos ---------- */
+[data-private] :is(#s-balance, #s-ingresos, #s-gastos, #s-total, #s-diario, .amount, .bal,
+  #tx-summary b, .day-head span:last-child, .donut-center strong, .lg-val, .tip span) {
+  filter: blur(9px); user-select: none; transition: filter .25s ease;
+}
+[data-private] .axis.y { opacity: 0; }
+:is(#s-balance, #s-ingresos, #s-gastos, #s-total, #s-diario, .amount, .bal, .lg-val) { transition: filter .25s ease; }
+#btn-privacy.on { color: var(--primary); background: var(--primary-soft); }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }

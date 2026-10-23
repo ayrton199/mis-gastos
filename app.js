@@ -61,6 +61,19 @@ $$('[data-theme-toggle]').forEach((b) => b.addEventListener('click', () =>
   applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark', true)));
 applyTheme(document.documentElement.dataset.theme || 'dark', false);
 
+// ---------- Modo privado (saldos borrosos) ----------
+function applyPrivacy(on) {
+  document.documentElement.toggleAttribute('data-private', on);
+  try { localStorage.setItem('gastos.private', on ? '1' : '0'); } catch { /* modo privado */ }
+  const b = $('#btn-privacy');
+  b.innerHTML = icon(on ? 'eyeOff' : 'eye');
+  b.title = on ? 'Mostrar saldos' : 'Ocultar saldos';
+  b.setAttribute('aria-label', b.title);
+  b.classList.toggle('on', on);
+}
+$('#btn-privacy').addEventListener('click', () => applyPrivacy(!document.documentElement.hasAttribute('data-private')));
+applyPrivacy(document.documentElement.hasAttribute('data-private'));
+
 // ---------- Entrada y configuración ----------
 function showGate(step, msg = '') {
   $('#app').hidden = true;
@@ -523,7 +536,7 @@ function renderCategories() {
     $(`#cat-${kind}`).innerHTML = cats.sort((a, b) => b.total - a.total).map((c) => `
       <div class="card cat-card" style="--c:${esc(c.color)};animation:rise .45s both;animation-delay:${i++ * 35}ms" data-id="${esc(c.id)}">
         <div class="top"><span class="emoji-tile" style="--c:${esc(c.color)}">${esc(c.icon)}</span>
-          <div class="meta"><b>${esc(c.name)}</b><small>${c.total ? money(c.total) : 'Sin movimientos'} en ${monthName(state.month, { month: 'long' })}</small></div></div>
+          <div class="meta"><b>${esc(c.name)}</b><small>${c.total ? `<span class="amount">${money(c.total)}</span>` : 'Sin movimientos'} en ${monthName(state.month, { month: 'long' })}</small></div></div>
         <div class="mini-bar"><div style="width:${(c.total / max) * 100}%"></div></div>
       </div>`).join('') + `<button class="add-card" data-new-cat="${kind}">${icon('plus')}Nueva categoría</button>`;
   }

@@ -8,6 +8,8 @@
   <script>
     // Tema antes de pintar (evita parpadeo): oscuro por defecto
     try { document.documentElement.dataset.theme = localStorage.getItem('gastos.theme') || 'dark'; } catch (e) { document.documentElement.dataset.theme = 'dark'; }
+    // Modo privado: saldos borrosos desde el primer pintado
+    try { if (localStorage.getItem('gastos.private') === '1') document.documentElement.dataset.private = ''; } catch (e) {}
   </script>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
@@ -66,6 +68,7 @@
           </div>
         </div>
         <div class="top-actions">
+          <button class="ghost-icon" id="btn-privacy" aria-label="Ocultar saldos" title="Ocultar saldos"></button>
           <button class="ghost-icon" id="btn-refresh" aria-label="Recargar datos" title="Recargar datos de la hoja" data-icon="refresh"></button>
           <button class="ghost-icon theme-toggle mobile-only" data-theme-toggle aria-label="Cambiar tema"></button>
           <button class="ghost-icon mobile-only" id="btn-settings-m" aria-label="Ajustes" data-icon="settings"></button>
