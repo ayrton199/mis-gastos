@@ -45,11 +45,11 @@ function parseAmount(text) {
   // Separador de miles si hay grupos de 3 dígitos; si no, coma/punto decimal
   const value = /^\d{1,3}([.,]\d{3})+$/.test(num) ? Number(num.replace(/[.,]/g, '')) : Number(num.replace(',', '.'));
   let mult = 1;
-  if (/^(millon|palo)/.test(unit)) mult = 1_000_000;
-  else if (/^(k|mil)$/.test(unit)) mult = 1_000;
+  if (/^(millon|palo)/.test(unit)) mult = 1000000;
+  else if (/^(k|mil)$/.test(unit)) mult = 1000;
   else if (/^(ctv|centavo)/.test(unit)) mult = 0.01;
   // En Ecuador "5 lucas" son 5 dólares; en Chile, 5.000 pesos
-  else if (/^luca/.test(unit) && CURRENCY === 'CLP') mult = 1_000;
+  else if (/^luca/.test(unit) && CURRENCY === 'CLP') mult = 1000;
   return { amount: Math.round(value * mult * 100) / 100, sign, match: m[0] };
 }
 
@@ -124,7 +124,7 @@ export function parseMessage(raw, { accounts, categories }) {
     return true;
   });
   while (words.length && CONNECTORS.has(key(words[0]))) words.shift();
-  while (words.length && CONNECTORS.has(key(words.at(-1)))) words.pop();
+  while (words.length && CONNECTORS.has(key(words[words.length - 1]))) words.pop();
   const description = words.join(' ');
 
   return {
