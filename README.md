@@ -88,6 +88,16 @@ La sesión de Google dura 1 hora; después la app te pide volver a tocar "Entrar
 El bot revisa mensajes cada minuto (así no necesita servidor), por eso la respuesta puede tardar hasta 1 minuto.
 Comandos: un movimiento en texto, `saldo`, `mes`, `deshacer`, `ayuda`.
 
+#### Fotos de recibos (opcional, con Gemini)
+1. Crea una clave gratis en https://aistudio.google.com/apikey.
+2. En Apps Script → ⚙️ → Propiedades del script, agrega `GEMINI_API_KEY` con esa clave.
+3. Ejecuta `configurar` otra vez: elige automáticamente un modelo "flash" disponible para tu clave
+   (para forzar uno, agrega la propiedad `GEMINI_MODEL`, por ejemplo `gemini-2.5-flash`).
+
+Luego envía la foto (o PDF) del recibo al bot. Si en el pie escribes el monto (`supermaxi 45,80`), se usa el texto y no se llama a Gemini;
+si escribes solo la cuenta (`pichincha`), Gemini lee el resto. Las fotos no se guardan en ningún lado.
+En el plan gratuito de Gemini, Google puede usar las imágenes enviadas para mejorar sus productos, y hay un límite de uso diario.
+
 Si cambias `parser.js` o `apps-script/bot.js`, regenera el archivo para Apps Script con `node tools/build-apps-script.mjs` y vuelve a pegarlo.
 
 ## Archivos
