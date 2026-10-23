@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#12151c">
+  <title>Mis Gastos</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://accounts.google.com/gsi/client" async></script>
+</head>
+<body>
+  <!-- Pantalla de inicio de sesión / configuración -->
+  <section id="gate" class="gate">
+    <div class="gate-card card">
+      <div class="gate-logo">💰</div>
+      <h1>Mis Gastos</h1>
+      <div id="gate-login">
+        <p>Tus movimientos se guardan en tu propia hoja de Google Sheets.</p>
+        <button class="btn primary big" id="btn-login">Entrar con Google</button>
+      </div>
+      <form id="gate-sheet" hidden>
+        <p>Pega el enlace de la hoja de Google Sheets donde quieres guardar tus gastos.</p>
+        <input id="sheet-url" placeholder="https://docs.google.com/spreadsheets/d/…" required>
+        <button class="btn primary big" type="submit">Usar esta hoja</button>
+      </form>
+      <p class="gate-msg" id="gate-msg"></p>
+    </div>
+  </section>
+
+  <div id="app" hidden>
+    <header class="topbar">
+      <div class="brand">💰 Mis Gastos</div>
+      <nav class="tabs" id="tabs">
+        <button data-view="resumen" class="active">Resumen</button>
+        <button data-view="movimientos">Movimientos</button>
+        <button data-view="cuentas">Cuentas</button>
+        <button data-view="categorias">Categorías</button>
+      </nav>
+      <div class="status">
+        <a class="pill ok" id="sheet-link" target="_blank" rel="noopener" title="Abrir la hoja">Google Sheets</a>
+        <button class="pill click" id="btn-refresh" title="Recargar datos de la hoja">↻</button>
+        <button class="pill click" id="btn-settings" title="Cambiar hoja o salir">⚙️</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- RESUMEN -->
+      <section id="view-resumen" class="view active">
+        <div class="toolbar">
+          <input type="month" id="month">
+          <form id="quick" class="quick">
+            <input id="quick-text" placeholder="Registro rápido: almuerzo 3.50 pichincha" autocomplete="off">
+            <button class="btn" type="submit">Agregar</button>
+          </form>
+          <button class="btn primary" id="btn-new">+ Nuevo movimiento</button>
+        </div>
+        <div class="cards">
+          <div class="card stat"><span>Ingresos del mes</span><strong id="s-ingresos" class="pos"></strong></div>
+          <div class="card stat"><span>Gastos del mes</span><strong id="s-gastos" class="neg"></strong></div>
+          <div class="card stat"><span>Balance del mes</span><strong id="s-balance"></strong></div>
+          <div class="card stat"><span>Saldo total en cuentas</span><strong id="s-total"></strong></div>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <h3>Gastos por categoría</h3>
+            <div id="by-category" class="bars"></div>
+          </div>
+          <div class="card">
+            <h3>Últimos 6 meses</h3>
+            <div id="monthly" class="monthly"></div>
+            <div class="legend"><i style="background:var(--pos)"></i>Ingresos<i style="background:var(--neg)"></i>Gastos</div>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <h3>Saldos por cuenta</h3>
+            <div id="account-balances"></div>
+          </div>
+          <div class="card">
+            <h3>Movimientos recientes</h3>
+            <div id="recent"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MOVIMIENTOS -->
+      <section id="view-movimientos" class="view">
+        <div class="toolbar wrap">
+          <input type="search" id="f-q" placeholder="Buscar…">
+          <select id="f-type"><option value="">Todos los tipos</option><option value="gasto">Gastos</option><option value="ingreso">Ingresos</option><option value="transferencia">Transferencias</option></select>
+          <select id="f-account"></select>
+          <select id="f-category"></select>
+          <input type="date" id="f-from" title="Desde">
+          <input type="date" id="f-to" title="Hasta">
+          <div class="spacer"></div>
+          <button class="btn primary" id="btn-new-2">+ Nuevo</button>
+        </div>
+        <div class="card flush">
+          <table class="table" id="tx-table">
+            <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Cuenta</th><th class="r">Monto</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <div class="empty" id="tx-empty" hidden>No hay movimientos con estos filtros.</div>
+        </div>
+      </section>
+
+      <!-- CUENTAS -->
+      <section id="view-cuentas" class="view">
+        <div class="toolbar"><div class="spacer"></div><button class="btn primary" id="btn-new-account">+ Nueva cuenta</button></div>
+        <div id="banks"></div>
+      </section>
+
+      <!-- CATEGORIAS -->
+      <section id="view-categorias" class="view">
+        <div class="toolbar"><div class="spacer"></div><button class="btn primary" id="btn-new-category">+ Nueva categoría</button></div>
+        <div class="grid2">
+          <div class="card"><h3>Gastos</h3><div id="cat-gasto" class="cat-list"></div></div>
+          <div class="card"><h3>Ingresos</h3><div id="cat-ingreso" class="cat-list"></div></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal movimiento -->
+  <dialog id="dlg-tx">
+    <form method="dialog" id="form-tx">
+      <h2 id="tx-title">Nuevo movimiento</h2>
+      <div class="segmented" id="tx-type">
+        <label><input type="radio" name="type" value="gasto" checked><span>Gasto</span></label>
+        <label><input type="radio" name="type" value="ingreso"><span>Ingreso</span></label>
+        <label><input type="radio" name="type" value="transferencia"><span>Transferencia</span></label>
+      </div>
+      <label>Monto<input name="amount" type="number" step="any" min="0" required inputmode="decimal"></label>
+      <label>Fecha<input name="date" type="date" required></label>
+      <label><span id="lbl-account">Cuenta</span><select name="account" required></select></label>
+      <label class="only-transfer">Cuenta destino<select name="to_account"></select></label>
+      <label class="no-transfer">Categoría<select name="category"></select></label>
+      <label>Comercio<input name="merchant" placeholder="Opcional"></label>
+      <label>Descripción<input name="description" placeholder="Opcional"></label>
+      <div class="receipt-row">
+        <button type="button" class="btn" id="btn-attach">📎 Adjuntar foto del recibo</button>
+        <a id="tx-receipt" target="_blank" rel="noopener" hidden>🧾 Ver recibo</a>
+      </div>
+      <p class="error" id="tx-error"></p>
+      <div class="actions">
+        <button type="button" class="btn danger" id="tx-delete" hidden>Eliminar</button>
+        <div class="spacer"></div>
+        <button type="button" class="btn" data-close>Cancelar</button>
+        <button type="submit" class="btn primary">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal cuenta -->
+  <dialog id="dlg-account">
+    <form method="dialog" id="form-account">
+      <h2 id="account-title">Nueva cuenta</h2>
+      <label>Nombre<input name="name" required placeholder="Ej: Cuenta de ahorros, Tarjeta de crédito"></label>
+      <label>Banco<input name="bank" placeholder="Ej: Banco Pichincha, Produbanco, JEP" list="bank-list"></label>
+      <datalist id="bank-list"></datalist>
+      <label>Tipo<select name="type">
+        <option value="ahorro">Cuenta de ahorros</option>
+        <option value="corriente">Cuenta corriente</option>
+        <option value="credito">Tarjeta de crédito</option>
+        <option value="efectivo">Efectivo</option>
+        <option value="inversion">Inversión</option>
+      </select></label>
+      <label>Saldo inicial<input name="initial_balance" type="number" step="any" value="0"></label>
+      <label>Color<input name="color" type="color" value="#4f7cff"></label>
+      <label class="check"><input name="is_default" type="checkbox"> Cuenta predeterminada (se usa cuando no indicas una)</label>
+      <p class="error" id="account-error"></p>
+      <div class="actions">
+        <button type="button" class="btn danger" id="account-delete" hidden>Eliminar</button>
+        <div class="spacer"></div>
+        <button type="button" class="btn" data-close>Cancelar</button>
+        <button type="submit" class="btn primary">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal categoria -->
+  <dialog id="dlg-category">
+    <form method="dialog" id="form-category">
+      <h2 id="category-title">Nueva categoría</h2>
+      <label>Nombre<input name="name" required></label>
+      <label>Tipo<select name="kind"><option value="gasto">Gasto</option><option value="ingreso">Ingreso</option></select></label>
+      <label>Ícono (emoji)<input name="icon" maxlength="4" placeholder="🍕"></label>
+      <label>Color<input name="color" type="color" value="#4f7cff"></label>
+      <p class="error" id="category-error"></p>
+      <div class="actions">
+        <button type="button" class="btn danger" id="category-delete" hidden>Eliminar</button>
+        <div class="spacer"></div>
+        <button type="button" class="btn" data-close>Cancelar</button>
+        <button type="submit" class="btn primary">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal ajustes -->
+  <dialog id="dlg-settings">
+    <form method="dialog">
+      <h2>Ajustes</h2>
+      <p class="muted">Hoja conectada: <a id="settings-sheet" target="_blank" rel="noopener"></a></p>
+      <div class="actions">
+        <button type="button" class="btn" id="btn-change-sheet">Cambiar de hoja</button>
+        <button type="button" class="btn danger" id="btn-logout">Cerrar sesión</button>
+        <div class="spacer"></div>
+        <button type="button" class="btn" data-close>Cerrar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <input type="file" id="receipt-file" accept="image/*,application/pdf" hidden>
+  <div class="loading" id="loading" hidden><div class="spinner"></div></div>
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js" type="module"></script>
+</body>
+</html>

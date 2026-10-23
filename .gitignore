@@ -1,0 +1,4 @@
+# Versión anterior con servidor (contiene claves y tokens): nunca se sube
+_version-servidor/
+node_modules/
+.env
