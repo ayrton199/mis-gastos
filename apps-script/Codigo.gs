@@ -159,14 +159,38 @@ function procesarRecibo_(chatId, archivo, pie) {
   responder_(chatId, `🧾 Leí tu recibo:\n${confirmacion_(t, datos)}`);
 }
 
+// Qué entra en cada categoría por defecto, para que Gemini elija mejor (las categorías nuevas van solo con su nombre)
+const GUIA_CATEGORIAS = {
+  'Supermercado': 'compras de comida y productos del hogar en supermercados, tiendas, mercados',
+  'Restaurantes': 'comida preparada, cafés, bares, delivery de comida',
+  'Transporte': 'taxi, Uber, bus, gasolina, peajes, parqueadero, mantenimiento del carro, pasajes',
+  'Vivienda': 'arriendo, alícuota, hipoteca, muebles, ferretería, arreglos de la casa',
+  'Servicios básicos': 'luz, agua, gas, internet del hogar, plan de celular, recargas',
+  'Salud': 'farmacia, medicinas, médico, dentista, exámenes, seguro médico, óptica',
+  'Entretenimiento': 'cine, conciertos, salidas, juegos, viajes, hoteles',
+  'Compras': 'ropa, zapatos, tecnología y aparatos, regalos, compras online de productos físicos',
+  'Educación': 'colegio, universidad, matrículas, pensiones, libros, útiles, cursos presenciales',
+  'Suscripciones': 'pagos recurrentes de servicios digitales o software: streaming, música, apps, herramientas de programación, '
+    + 'IA (ChatGPT, Claude, Copilot), GitHub, hosting, dominios, servidores y nube (AWS, Google Cloud), almacenamiento, '
+    + 'licencias de software (Microsoft 365, Adobe, Notion), plataformas de cursos online por membresía, gimnasio',
+  'Otros gastos': 'solo si no encaja en ninguna otra',
+  'Sueldo': 'sueldo, quincena, décimos, utilidades',
+  'Freelance': 'pagos por trabajos independientes, honorarios, facturas a clientes',
+  'Inversiones': 'intereses, dividendos, pólizas',
+  'Otros ingresos': 'solo si no encaja en ninguna otra',
+};
+
 function leerReciboConGemini_(base64, mime, pie, datos) {
   const gastos = datos.categories.filter((c) => c.kind === 'gasto').map((c) => c.name);
   const ingresos = datos.categories.filter((c) => c.kind === 'ingreso').map((c) => c.name);
   const cuentas = datos.accounts.map((a) => a.name);
+  const describir = (n) => (GUIA_CATEGORIAS[n] ? `- ${n}: ${GUIA_CATEGORIAS[n]}` : `- ${n}`);
   const prompt = [
     `Hoy es ${fechaISO_(new Date())}. Extrae el movimiento de este recibo, factura o comprobante (Ecuador, montos en dólares).`,
     'Usa el TOTAL pagado (con IVA y propina), no subtotales. Si no ves el año, usa el actual. Si no hay fecha, usa hoy.',
-    `Categorías de gasto: ${gastos.join(', ')}. Categorías de ingreso: ${ingresos.join(', ')}.`,
+    'Categorías de gasto:', ...gastos.map(describir),
+    'Categorías de ingreso:', ...ingresos.map(describir),
+    'Elige la categoría por lo que se compró, no por la forma de pago.',
     `Cuentas: ${cuentas.join(', ')}. Elige la cuenta solo si hay una pista clara (banco o tarjeta del comprobante, o el pie de foto); si no, usa "ninguna".`,
     pie ? `Pie de foto del usuario: "${pie}"` : '',
     'Un comprobante de transferencia o depósito recibido es un ingreso; una compra o pago es un gasto.',
@@ -406,7 +430,11 @@ const CATEGORY_KEYWORDS = {
   'Entretenimiento': ['cine', 'supercines', 'multicines', 'cinemark', 'concierto', 'entrada', 'entradas', 'farra', 'discoteca', 'karaoke', 'juego', 'juegos', 'steam', 'playstation', 'xbox', 'partido', 'futbol', 'cancha', 'paseo', 'viaje', 'vacaciones', 'playa', 'hotel', 'hostal', 'airbnb'],
   'Compras': ['ropa', 'zapatos', 'zapatillas', 'deportivos', 'camiseta', 'pantalon', 'de prati', 'deprati', 'etafashion', 'rm', 'marathon', 'tventas', 'mall', 'centro comercial', 'mercadolibre', 'mercado libre', 'amazon', 'aliexpress', 'shein', 'temu', 'regalo', 'tecnologia', 'celular nuevo', 'novicompu', 'la ganga', 'artefacta', 'comandato', 'jaher'],
   'Educación': ['universidad', 'colegio', 'escuela', 'pension', 'matricula', 'inscripcion', 'curso', 'clases', 'libro', 'libros', 'utiles', 'utiles escolares', 'uniforme', 'copias', 'deberes'],
-  'Suscripciones': ['netflix', 'spotify', 'disney', 'disney+', 'hbo', 'max', 'prime video', 'paramount', 'youtube premium', 'icloud', 'google one', 'chatgpt', 'suscripcion', 'gimnasio', 'gym', 'membresia'],
+  'Suscripciones': ['netflix', 'spotify', 'disney', 'disney+', 'hbo', 'max', 'prime video', 'paramount', 'youtube premium', 'icloud', 'google one', 'chatgpt', 'suscripcion', 'gimnasio', 'gym', 'membresia',
+    'claude', 'copilot', 'github', 'gitlab', 'cursor', 'openai', 'gemini', 'hosting', 'dominio', 'servidor', 'vps', 'aws', 'azure', 'google cloud',
+    'digitalocean', 'vercel', 'netlify', 'heroku', 'hostinger', 'godaddy', 'namecheap', 'jetbrains', 'figma', 'notion', 'canva', 'adobe',
+    'microsoft 365', 'office 365', 'dropbox', 'apple music', 'youtube music', 'deezer', 'crunchyroll', 'licencia', 'software', 'app',
+    'udemy', 'platzi', 'coursera', 'domestika'],
   'Sueldo': ['sueldo', 'salario', 'quincena', 'rol de pagos', 'decimo', 'decimo tercero', 'decimo cuarto', 'decimotercero', 'decimocuarto', 'utilidades', 'fondos de reserva', 'bono'],
   'Freelance': ['freelance', 'cachuelo', 'cachuelito', 'camello', 'honorarios', 'factura', 'proyecto', 'cliente', 'trabajito'],
   'Inversiones': ['intereses', 'dividendos', 'poliza', 'inversion', 'deposito a plazo', 'acciones', 'cripto', 'ahorro programado'],
