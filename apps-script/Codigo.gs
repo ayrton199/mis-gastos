@@ -167,7 +167,7 @@ function leerReciboConGemini_(base64, mime, pie, datos) {
     `Hoy es ${fechaISO_(new Date())}. Extrae el movimiento de este recibo, factura o comprobante (Ecuador, montos en dólares).`,
     'Usa el TOTAL pagado (con IVA y propina), no subtotales. Si no ves el año, usa el actual. Si no hay fecha, usa hoy.',
     `Categorías de gasto: ${gastos.join(', ')}. Categorías de ingreso: ${ingresos.join(', ')}.`,
-    `Cuentas: ${cuentas.join(', ')}. Elige la cuenta solo si hay una pista clara (banco o tarjeta del comprobante, o el pie de foto); si no, deja cuenta vacía.`,
+    `Cuentas: ${cuentas.join(', ')}. Elige la cuenta solo si hay una pista clara (banco o tarjeta del comprobante, o el pie de foto); si no, usa "ninguna".`,
     pie ? `Pie de foto del usuario: "${pie}"` : '',
     'Un comprobante de transferencia o depósito recibido es un ingreso; una compra o pago es un gasto.',
     'Si la imagen no es un recibo ni comprobante, marca es_recibo = false.',
@@ -187,7 +187,8 @@ function leerReciboConGemini_(base64, mime, pie, datos) {
           comercio: { type: 'STRING' },
           descripcion: { type: 'STRING', description: 'Breve, en español' },
           categoria: { type: 'STRING', enum: gastos.concat(ingresos) },
-          cuenta: { type: 'STRING', enum: [''].concat(cuentas) },
+          // Gemini no acepta "" en un enum: "ninguna" significa que no hubo pista de cuenta
+          cuenta: { type: 'STRING', enum: ['ninguna'].concat(cuentas.filter(Boolean)) },
         },
         required: ['es_recibo', 'tipo', 'monto', 'fecha', 'comercio', 'descripcion', 'categoria', 'cuenta'],
       },
