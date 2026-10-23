@@ -99,7 +99,7 @@
         </div>
         <div class="card flush">
           <table class="table" id="tx-table">
-            <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Cuenta</th><th class="r">Monto</th><th></th></tr></thead>
+            <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Cuenta</th><th class="r">Monto</th></tr></thead>
             <tbody></tbody>
           </table>
           <div class="empty" id="tx-empty" hidden>No hay movimientos con estos filtros.</div>
@@ -139,10 +139,6 @@
       <label class="no-transfer">Categoría<select name="category"></select></label>
       <label>Comercio<input name="merchant" placeholder="Opcional"></label>
       <label>Descripción<input name="description" placeholder="Opcional"></label>
-      <div class="receipt-row">
-        <button type="button" class="btn" id="btn-attach">📎 Adjuntar foto del recibo</button>
-        <a id="tx-receipt" target="_blank" rel="noopener" hidden>🧾 Ver recibo</a>
-      </div>
       <p class="error" id="tx-error"></p>
       <div class="actions">
         <button type="button" class="btn danger" id="tx-delete" hidden>Eliminar</button>
@@ -212,7 +208,6 @@
     </form>
   </dialog>
 
-  <input type="file" id="receipt-file" accept="image/*,application/pdf" hidden>
   <div class="loading" id="loading" hidden><div class="spinner"></div></div>
   <div class="toast" id="toast"></div>
 

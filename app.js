@@ -235,24 +235,21 @@ function renderTransactions() {
     const c = catInfo(t.category);
     return `<tr data-id="${esc(t.id)}">
       <td>${esc(t.date)}</td>
-      <td class="desc">${esc(txTitle(t))}${t.merchant && t.description ? `<small style="display:block;color:var(--muted)">${esc(t.description)}</small>` : ''}</td>
+      <td class="desc">${esc(txTitle(t))}${t.merchant && t.description ? `<small style="display:block;color:var(--muted)">${esc(t.description)}</small>` : ''}
+        ${t.source === 'telegram' ? '<span class="src">✈️ Telegram</span>' : ''}</td>
       <td>${t.category ? `<span class="tag">${esc(c.icon)} ${esc(t.category)}</span>` : ''}</td>
       <td>${esc(t.account)}${t.to_account ? ` → ${esc(t.to_account)}` : ''}</td>
       <td class="r">${signedAmount(t)}</td>
-      <td>${/^https:\/\//.test(t.receipt) ? `<a href="${esc(t.receipt)}" target="_blank" rel="noopener" title="Ver recibo" data-stop>🧾</a>` : ''}</td>
     </tr>`;
   }).join('');
   $('#tx-empty').hidden = rows.length > 0;
-  $$('#tx-table tbody tr').forEach((el) => el.onclick = (e) => {
-    if (!e.target.closest('[data-stop]')) openTx(state.transactions.find((t) => t.id === el.dataset.id));
-  });
+  $$('#tx-table tbody tr').forEach((el) => el.onclick = () => openTx(state.transactions.find((t) => t.id === el.dataset.id)));
 }
 
 // ---------- Modal de movimiento ----------
 const dlgTx = $('#dlg-tx');
 const formTx = $('#form-tx');
 let editingTx = null;
-let receiptUrl = '';
 
 function updateTxForm() {
   const type = formTx.type.value;
@@ -264,13 +261,6 @@ function updateTxForm() {
   formTx.category.value = keep;
 }
 $('#tx-type').addEventListener('change', updateTxForm);
-
-function showReceipt(url) {
-  receiptUrl = url || '';
-  $('#tx-receipt').hidden = !receiptUrl;
-  $('#tx-receipt').href = receiptUrl || '#';
-  $('#btn-attach').textContent = receiptUrl ? '📎 Cambiar recibo' : '📎 Adjuntar foto del recibo';
-}
 
 function openTx(tx = null, draft = null) {
   if (!state.accounts.length) return toast('Primero crea una cuenta');
@@ -292,7 +282,6 @@ function openTx(tx = null, draft = null) {
   $('#tx-title').textContent = tx ? 'Editar movimiento' : draft ? 'Revisa y guarda' : 'Nuevo movimiento';
   $('#tx-delete').hidden = !tx;
   $('#tx-error').textContent = '';
-  showReceipt(tx?.receipt);
   dlgTx.showModal();
   if (!tx && !draft) formTx.amount.focus();
 }
@@ -307,7 +296,7 @@ function validate(t) {
 
 formTx.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const t = { ...Object.fromEntries(new FormData(formTx)), receipt: receiptUrl, created: editingTx?.created };
+  const t = { ...Object.fromEntries(new FormData(formTx)), source: editingTx?.source, created: editingTx?.created };
   t.amount = Number(t.amount);
   const error = validate(t);
   if (error) return ($('#tx-error').textContent = error);
@@ -325,18 +314,6 @@ $('#tx-delete').onclick = async () => {
 };
 $('#btn-new').onclick = () => openTx();
 $('#btn-new-2').onclick = () => openTx();
-
-$('#btn-attach').onclick = () => $('#receipt-file').click();
-$('#receipt-file').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  e.target.value = '';
-  if (!file) return;
-  const btn = $('#btn-attach');
-  btn.disabled = true; btn.textContent = '⏳ Subiendo a tu Drive…';
-  try { showReceipt(await store.uploadReceipt(file)); }
-  catch (err) { $('#tx-error').textContent = err.message; showReceipt(receiptUrl); }
-  finally { btn.disabled = false; }
-});
 
 // ---------- Registro rápido ----------
 $('#quick').addEventListener('submit', (e) => {

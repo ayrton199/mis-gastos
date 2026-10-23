@@ -1,18 +1,16 @@
-// Capa de datos: tu Google Sheet es la base de datos y los recibos se guardan en tu Google Drive.
+// Capa de datos: tu Google Sheet es la base de datos.
 import { GOOGLE_CLIENT_ID } from './config.js';
 
 const SHEETS = 'https://sheets.googleapis.com/v4/spreadsheets';
-const DRIVE = 'https://www.googleapis.com/drive/v3';
-const DRIVE_UPLOAD = 'https://www.googleapis.com/upload/drive/v3/files';
-const SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file';
-const RECEIPTS_FOLDER = 'Mis Gastos - Recibos';
+const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
 
 const TOKEN_KEY = 'gastos.token';
 const SHEET_KEY = 'gastos.sheet';
 
 // ---------- Esquema de la hoja ----------
 const SCHEMA = {
-  Movimientos: ['ID', 'Fecha', 'Tipo', 'Monto', 'Cuenta', 'Cuenta destino', 'Categoría', 'Comercio', 'Descripción', 'Recibo', 'Registrado'],
+  // Origen: "web" o "telegram" (el bot de Apps Script escribe en estas mismas columnas)
+  Movimientos: ['ID', 'Fecha', 'Tipo', 'Monto', 'Cuenta', 'Cuenta destino', 'Categoría', 'Comercio', 'Descripción', 'Origen', 'Registrado'],
   Cuentas: ['ID', 'Nombre', 'Banco', 'Tipo', 'Saldo inicial', 'Color', 'Predeterminada'],
   'Categorías': ['ID', 'Nombre', 'Tipo', 'Color', 'Ícono'],
 };
@@ -215,7 +213,7 @@ export async function loadAll() {
     transactions: mov.map((r, i) => ({
       row: i + 2, id: String(r[0] ?? ''), date: serialToISO(r[1]), type: String(r[2] ?? '').toLowerCase(), amount: num(r[3]),
       account: r[4] ?? '', to_account: r[5] ?? '', category: r[6] ?? '', merchant: r[7] ?? '', description: r[8] ?? '',
-      receipt: r[9] ?? '', created: r[10] ?? '',
+      source: r[9] || 'web', created: r[10] ?? '',
     })).filter((t) => t.id && t.date && t.amount > 0),
     accounts: acc.map((r, i) => ({
       row: i + 2, id: String(r[0] ?? ''), name: String(r[1] ?? ''), bank: String(r[2] ?? ''), type: r[3] || 'corriente',
@@ -259,7 +257,7 @@ async function deleteRow(tab, id) {
 }
 
 const txRow = (id, t, created) => [id, t.date, t.type, Number(t.amount), t.account, t.type === 'transferencia' ? t.to_account : '',
-  t.type === 'transferencia' ? '' : t.category, t.merchant || '', t.description || '', t.receipt || '', created];
+  t.type === 'transferencia' ? '' : t.category, t.merchant || '', t.description || '', t.source || 'web', created];
 const nowText = () => new Date().toLocaleString('sv-SE').slice(0, 16);
 
 export const createTransaction = (t) => appendRows('Movimientos', [txRow(newId(), t, nowText())]);
@@ -309,26 +307,3 @@ export async function saveCategory(c, { categories, transactions }) {
   }
 }
 export const deleteCategory = (id) => deleteRow('Categorías', id);
-
-// ---------- Recibos en Google Drive ----------
-let folderId;
-async function receiptsFolder() {
-  if (folderId) return folderId;
-  const q = `mimeType = 'application/vnd.google-apps.folder' and name = '${RECEIPTS_FOLDER}' and trashed = false`;
-  const found = await request(`${DRIVE}/files?${new URLSearchParams({ q, fields: 'files(id)', spaces: 'drive' })}`);
-  folderId = found.files?.[0]?.id
-    ?? (await request(`${DRIVE}/files?fields=id`, json('POST', { name: RECEIPTS_FOLDER, mimeType: 'application/vnd.google-apps.folder' }))).id;
-  return folderId;
-}
-
-/** Sube la foto o PDF a tu Drive y devuelve el enlace para verlo. */
-export async function uploadReceipt(file) {
-  const parent = await receiptsFolder();
-  const ext = file.name.includes('.') ? file.name.slice(file.name.lastIndexOf('.')) : '';
-  const metadata = { name: `recibo-${new Date().toLocaleString('sv-SE').replace(/[: ]/g, '-')}${ext}`, parents: [parent] };
-  const body = new FormData();
-  body.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-  body.append('file', file);
-  const r = await request(`${DRIVE_UPLOAD}?uploadType=multipart&fields=id,webViewLink`, { method: 'POST', body });
-  return r.webViewLink;
-}

@@ -55,7 +55,8 @@ function parseAmount(text) {
 
 function parseDate(text) {
   const d = new Date();
-  const iso = (x) => x.toLocaleDateString('sv-SE');
+  // Formato manual (sin Intl) para que funcione igual en el navegador y en Google Apps Script
+  const iso = (x) => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
   if (hasPhrase(text, 'anteayer')) { d.setDate(d.getDate() - 2); return { date: iso(d), match: 'anteayer' }; }
   if (hasPhrase(text, 'ayer')) { d.setDate(d.getDate() - 1); return { date: iso(d), match: 'ayer' }; }
   const m = text.match(/(^|\s)(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?(?=\s|$)/);
