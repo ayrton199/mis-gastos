@@ -2,7 +2,7 @@
 
 // ID de cliente OAuth de Google (tipo "Aplicación web"). Es público por diseño:
 // solo funciona desde los orígenes autorizados en Google Cloud y cada persona entra con su propia cuenta.
-export const GOOGLE_CLIENT_ID = '';
+export const GOOGLE_CLIENT_ID = '615709924441-cerdegeqhnnukc9apivgctuuvb9dctt7.apps.googleusercontent.com';
 
 export const CURRENCY = 'USD';
 export const LOCALE = 'es-EC';
