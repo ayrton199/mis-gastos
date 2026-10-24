@@ -15,7 +15,7 @@ const monthName = (m, opts = { month: 'long', year: 'numeric' }) => new Date(`${
 const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const shiftMonth = (m, k) => { const [y, mo] = m.split('-').map(Number); return iso(new Date(y, mo - 1 + k, 1)).slice(0, 7); };
 
-const PALETTE = ['#8b6cff', '#5ad8f0', '#f07cf0', '#34d399', '#fbbf24', '#fb7185', '#60a5fa', '#f97316', '#a3e635', '#94a3b8'];
+const PALETTE = ['#ff5c00', '#00c3d9', '#ffa94d', '#34d399', '#fbbf24', '#fb7185', '#60a5fa', '#f97316', '#a3e635', '#94a3b8'];
 const VIEW_TITLES = { resumen: 'Resumen', movimientos: 'Movimientos', cuentas: 'Cuentas', categorias: 'Categorías' };
 
 const state = { transactions: [], accounts: [], categories: [], view: 'resumen', month: today().slice(0, 7), range: 'mes', type: '' };
@@ -47,7 +47,7 @@ async function busy(fn) {
 function applyTheme(theme, animate) {
   document.documentElement.dataset.theme = theme;
   try { localStorage.setItem('gastos.theme', theme); } catch { /* modo privado */ }
-  $('meta[name="theme-color"]').content = theme === 'dark' ? '#0c0d18' : '#f3f4fb';
+  $('meta[name="theme-color"]').content = theme === 'dark' ? '#061f30' : '#eef2f7';
   const next = theme === 'dark' ? 'sun' : 'moon';
   $$('[data-theme-toggle]').forEach((b) => {
     const holder = b.querySelector('.theme-toggle-icon') || b;

@@ -1,4 +1,4 @@
-# 💰 Mis Gastos
+# 👛 Ayrton Wallet
 
 App personal para registrar gastos, ingresos y transferencias entre tus cuentas de distintos bancos, con categorías.
 Es una página web estática (publicada gratis en GitHub Pages) que guarda todo **en tu propia hoja de Google Sheets**,
@@ -56,7 +56,7 @@ Las cuentas y categorías se guardan por nombre en *Movimientos*: si renombras u
 En https://console.cloud.google.com, en el proyecto de la app:
 
 1. Activa **Google Sheets API** (*APIs y servicios → Biblioteca*).
-2. *Google Auth Platform* (o *Pantalla de consentimiento de OAuth*): tipo **Externo**, nombre "Mis Gastos", tu correo de soporte. En **Público / Usuarios de prueba**, agrega tu correo de Gmail. Déjala en modo **Prueba**.
+2. *Google Auth Platform* (o *Pantalla de consentimiento de OAuth*): tipo **Externo**, nombre "Ayrton Wallet", tu correo de soporte. En **Público / Usuarios de prueba**, agrega tu correo de Gmail. Déjala en modo **Prueba**.
 3. *Clientes → Crear cliente* → **Aplicación web**. En **Orígenes de JavaScript autorizados** agrega:
    - `https://TU-USUARIO.github.io`
    - `http://localhost:8080` (para probar en tu PC)

@@ -1,7 +1,7 @@
 // ⚠️ Archivo generado por tools/build-apps-script.mjs: no lo edites a mano.
 // Cópialo completo en Extensiones → Apps Script de tu Google Sheet.
 
-// ===================== Bot de Telegram para Mis Gastos =====================
+// ===================== Bot de Telegram para Ayrton Wallet =====================
 // Vive dentro de tu Google Sheet (Extensiones → Apps Script). Cada minuto revisa
 // los mensajes nuevos de tu bot y registra los movimientos en la pestaña "Movimientos".
 //
@@ -66,7 +66,7 @@ function revisarMensajes() {
 }
 
 const AYUDA = [
-  '📒 Mis Gastos',
+  '👛 Ayrton Wallet',
   '',
   '• Escribe un gasto: almuerzo 3.50 pichincha · taxi 2,50 ayer · gasolina 20 lucas',
   '• Ingresos: me cayó la quincena 450, o con + adelante: +80 cachuelo',

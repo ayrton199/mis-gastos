@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0d0e1a">
-  <title>Mis Gastos</title>
+  <meta name="theme-color" content="#061f30">
+  <title>Ayrton Wallet</title>
   <script>
     // Tema antes de pintar (evita parpadeo): oscuro por defecto
     try { document.documentElement.dataset.theme = localStorage.getItem('gastos.theme') || 'dark'; } catch (e) { document.documentElement.dataset.theme = 'dark'; }
@@ -24,8 +24,8 @@
   <section id="gate" class="gate">
     <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
     <div class="gate-card glass">
-      <div class="logo-mark big">$</div>
-      <h1>Mis Gastos</h1>
+      <img class="logo-mark big" src="icon.svg" alt="">
+      <h1>Ayrton Wallet</h1>
       <div id="gate-login">
         <p>Tus finanzas personales, guardadas en tu propia hoja de Google Sheets.</p>
         <button class="btn primary big" id="btn-login">Entrar con Google</button>
@@ -43,7 +43,7 @@
   <div id="app" class="shell" hidden>
     <!-- Menú lateral (PC) -->
     <aside class="sidebar">
-      <div class="brand"><div class="logo-mark">$</div><span>Mis Gastos</span></div>
+      <div class="brand"><img class="logo-mark" src="icon.svg" alt=""><span>Ayrton Wallet</span></div>
       <nav class="side-nav" id="side-nav">
         <button data-view="resumen" class="active" data-icon="home">Resumen</button>
         <button data-view="movimientos" data-icon="list">Movimientos</button>

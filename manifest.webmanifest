@@ -1,10 +1,10 @@
 {
-  "name": "Mis Gastos",
-  "short_name": "Gastos",
+  "name": "Ayrton Wallet",
+  "short_name": "Ayrton Wallet",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#12151c",
-  "theme_color": "#12151c",
+  "background_color": "#0B3954",
+  "theme_color": "#061f30",
   "icons": [
     { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ]
